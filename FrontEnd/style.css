@@ -1,0 +1,12 @@
+body {
+    height: 200px;
+    width: 400px;
+    position: center;
+    top: 50%;
+    left: 50%;
+    background-color: rgb(1, 26, 53) !important;
+}
+
+h2, label {
+    color: white;
+}
