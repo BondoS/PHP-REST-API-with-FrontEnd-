@@ -12,11 +12,11 @@ $(document).ready((e) => {
     // debugger;
     //DOM
     // Edit track
-    if (typeof lastItemUrl !== "undefined" && lastItemUrl === "edit.php" &&
-    typeof beforeLastItemUrl !== "undefined" && beforeLastItemUrl === "track") {
+    if (typeof lastItemUrl !== "undefined" && typeof parseInt(lastItemUrl) !== Number &&
+        typeof beforeLastItemUrl !== "undefined" && beforeLastItemUrl === "edit.php") {
         $.ajax({
             type: 'GET',
-            url: 'http://localhost/projects/proj/FinalProject/api/Song/song.php?id=1',
+            url: 'http://localhost/projects/proj/FinalProject/api/Song/song.php?id=' + lastItemUrl,
             dataType: 'json',
             success: function (data) {
                 console.log('data', data);
@@ -26,9 +26,40 @@ $(document).ready((e) => {
 
             }
         });
+        $("form").submit(function (event) {
+            event.preventDefault();
+            var track =
+            {
+                "name": $('#name').val(),
+                "artist": $('#artist').val(),
+                "gener": $('#gener').val(),
+                "youtubeLink": $('#youtubeLink').val(),
+                "id": lastItemUrl,
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "http://localhost/projects/proj/FinalProject/api/song/update.php",
+                // The key needs to match your method's input parameter (case-sensitive).
+                data: JSON.stringify({ track }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $('form').find("input[type=text], textarea").val("");
+                    alert('Track updated successfully');
+                    setTimeout(() => {
+                        window.location.replace(domain);
+                    }, 500);
+                },
+                failure: function (errMsg) {
+                    console.log(errMsg);
+                }
+            });
+        });
 
 
-    } else if (typeof lastItemUrl !== "undefined" && lastItemUrl === "new.php") {
+    } else if (typeof lastItemUrl !== "undefined" && lastItemUrl === "new.php" &&
+        typeof beforeLastItemUrl !== "undefined" && beforeLastItemUrl === "track") {
         // Add New track
         $("form").submit(function (event) {
             event.preventDefault();
@@ -47,13 +78,13 @@ $(document).ready((e) => {
                 data: JSON.stringify({ track }),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: function (data) { 
+                success: function (data) {
                     $('form').find("input[type=text], textarea").val("");
                     alert('New track created successfully');
                     setTimeout(() => {
                         window.location.replace(domain);
                     }, 500);
-                 },
+                },
                 failure: function (errMsg) {
                     console.log(errMsg);
                 }
@@ -86,12 +117,42 @@ $(document).ready((e) => {
             li.appendChild(iFrame);
             li.setAttribute('id', listItemId);
             let aTag = document.createElement("a");
-            aTag.href = domain + "/track?id=" + id;
+            aTag.href = domain + "/track/edit.php/" + id;
             aTag.innerHTML = "Edit"
             $(aTag).addClass('btn btn-primary').attr('type', 'button');
             li.appendChild(aTag);
+            let aTag2 = document.createElement("a");
+            aTag2.innerHTML = "Delete"
+            $(aTag2).addClass('btn btn-danger delete-track').attr('track-id', id);
+            li.appendChild(aTag2);
             ul.appendChild(li);
+
         }
+
+        $('.delete-track').click((e) => {
+            console.log($(e.target).attr('track-id'));
+            var result = confirm("Track will be deleted, Please Confirm");
+            if (result) {
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost/projects/proj/FinalProject/api/song/delete.php",
+                    // The key needs to match your method's input parameter (case-sensitive).
+                    data: JSON.stringify({ 'id': $(e.target).attr('track-id') }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        alert('Track deleted successfully');
+                        setTimeout(() => {
+                            window.location.replace(domain);
+                        }, 500);
+                    },
+                    failure: function (errMsg) {
+                        console.log(errMsg);
+                    }
+                });
+            }
+
+        })
     }
 });
 function parse_query_string(query) {
